@@ -1,0 +1,13 @@
+name: 6502-computer
+
+up:
+  - homebrew:
+    - minipro
+  - ruby:
+      version: 2.7.4
+  - bundler
+
+commands:
+  run: bin/makerom
+  write: minipro -p AT28C256 -w rom.bin
+  read: minipro -p AT28C256 -r rom-$$.bin

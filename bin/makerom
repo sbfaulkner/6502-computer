@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+require "rom"
+require "w65c02s"
+
+ROM_PATH = File.expand_path("../rom.bin", __dir__)
+
+rom = Rom.new(W65C02S.nop[0])
+
+rom[0xfffc] = W65C02S.word(0x8000)
+
+rom[0x8000] = W65C02S.lda(0x42)   # 0xA9 0x42       ; LDA #$42
+rom[0x8002] = W65C02S.sta(0x6000) # 0x8D 0x00 0x60  ; STA $6000
+
+warn "Writing ROM to #{ROM_PATH}…"
+bytes = rom.write(ROM_PATH)
+warn "#{bytes} bytes written."
