@@ -12,8 +12,17 @@ rom = Rom.new(W65C02S.nop[0])
 
 rom[0xfffc] = W65C02S.word(0x8000)
 
-rom[0x8000] = W65C02S.lda(0x42)   # 0xA9 0x42       ; LDA #$42
-rom[0x8002] = W65C02S.sta(0x6000) # 0x8D 0x00 0x60  ; STA $6000
+                                    # set DDRB to output
+rom[0x8000] = W65C02S.lda(0xff) +   # 0xA9 0xFF       ; LDA #$ff
+              W65C02S.sta(0x6002) + # 0x8D 0x02 0x60  ; STA $6002
+                                    # output 0x55 to ORB
+              W65C02S.lda(0x55) +   # 0xA9 0x55       ; LDA #$55
+              W65C02S.sta(0x6000) + # 0x8D 0x00 0x60  ; STA $6000
+                                    # output 0xAA to ORB
+              W65C02S.lda(0xaa) +   # 0xA9 0xAA       ; LDA #$aa
+              W65C02S.sta(0x6000) + # 0x8D 0x00 0x60  ; STA $6000
+                                    # jump to start of loop
+              W65C02S.jmp(0x8005)   # 0x4C 0x05 0x80  ; JMP $8005
 
 warn "Writing ROM to #{ROM_PATH}…"
 bytes = rom.write(ROM_PATH)

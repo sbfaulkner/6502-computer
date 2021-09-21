@@ -7,6 +7,10 @@ module W65C02S
     [value & 0x00ff, (value & 0xff00) >> 8]
   end
 
+  def jmp(address)
+    [0x4C] + word(address)
+  end
+
   def lda(operand)
     [0xA9, operand]
   end
