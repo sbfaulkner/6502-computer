@@ -3,11 +3,15 @@ name: 6502-computer
 up:
   - homebrew:
     - minipro
-  - ruby:
-      version: 2.7.4
-  - bundler
+  - custom:
+      name: Build vasm
+      met?: "test -x vasm/vasm6502_oldstyle && curl -sI http://sun.hasenbraten.de/vasm/release/vasm.tar.gz -H \"If-Modified-Since: $(TZ=GMT date -r vasm/vasm6502_oldstyle '+%a, %d %b %Y %T %Z')\" | grep -q \"Not Modified\""
+      meet: |
+        curl http://sun.hasenbraten.de/vasm/release/vasm.tar.gz | tar zx && \
+        cd vasm && \
+        make CPU=6502 SYNTAX=oldstyle
 
 commands:
-  run: bin/makerom
-  write: minipro -p AT28C256 -w rom.bin
-  read: minipro -p AT28C256 -r rom-$$.bin
+  build: vasm/vasm6502_oldstyle -Fbin -dotdir -o rom.bin rom.65s
+  run-built: minipro -p AT28C256 -w rom.bin
+  read: minipro -p AT28C256 -r rom.bin
