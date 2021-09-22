@@ -3,16 +3,16 @@
         .ORG $8000
 
 START
-        LDA #$FF  ; set DDRB to output
+        LDA #$FF        ; set DDRB to output
         STA $6002
 
-BLINK   LDA #$55  ; output 0x55 to ORB
+        LDA #$50        ; initialize to $50
         STA $6000
 
-        LDA #$AA  ; output 0xAA to ORB
+LOOP    ROR             ; rotate the bits (ie. LEDs)
         STA $6000
 
-        JMP BLINK ; jump to start of loop
+        JMP LOOP        ; jump to start of loop
 
 ;*******************************************************************************
 ; hardware vectors
