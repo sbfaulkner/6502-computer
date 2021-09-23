@@ -65,20 +65,17 @@ LOOP:
 LCD_INSTRUCTION:
         STA PORTB
         LDA #0                  ; Clear RS/RW/E bits
-        STA PORTA
-        LDA #E                  ; Set E bit to send instruction
-        STA PORTA
-        LDA #0                  ; Clear E bit
-        STA PORTA
+        JSR LCD_SEND
         RTS
 
 PRINT_CHARACTER:
         STA PORTB
         LDA #RS                 ; Set RS; Clear RW/E bits
+LCD_SEND:
         STA PORTA
-        LDA #(RS | E)           ; Set E bit to send instruction
+        ORA #E                  ; Set E bit to send instruction
         STA PORTA
-        LDA #RS                 ; Clear E bit
+        EOR #E                  ; Clear E bit
         STA PORTA
         RTS
 
