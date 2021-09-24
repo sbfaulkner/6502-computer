@@ -32,35 +32,19 @@ START:
         LDA #%00000001          ; Clear display
         JSR LCD_INSTRUCTION
 
-        LDA #"H"                ; Send H to DDRAM
+        LDX #0
+PRINT_MESSAGE:
+        LDA MESSAGE,X           ; Send next character to DDRAM
+        BEQ STOP
         JSR PRINT_CHARACTER
-        LDA #"e"                ; Send e to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"l"                ; Send l to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"l"                ; Send l to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"o"                ; Send o to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #","                ; Send , to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #" "                ; Send space to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"w"                ; Send w to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"o"                ; Send o to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"r"                ; Send r to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"l"                ; Send l to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"d"                ; Send d to DDRAM
-        JSR PRINT_CHARACTER
-        LDA #"!"                ; Send ! to DDRAM
-        JSR PRINT_CHARACTER
+        INX
+        JMP PRINT_MESSAGE
 
-LOOP:
-        JMP LOOP                ; Stop here
+STOP:
+        JMP STOP                ; Stop here
+
+MESSAGE:
+        .ASCIIZ "Hello, world!                           eater.net/6502"
 
 LCD_WAIT:
         PHA
