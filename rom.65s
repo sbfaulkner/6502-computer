@@ -62,13 +62,35 @@ START:
 LOOP:
         JMP LOOP                ; Stop here
 
+LCD_WAIT:
+        PHA
+        LDA #%00000000          ; ORB is input
+        STA DDRB
+LCD_POLL:
+        LDA #RW                 ; Set RW; Clear RS/E bits
+        STA PORTA
+        ORA #E                  ; Set E bit to send instruction
+        STA PORTA
+        LDA PORTB
+        AND #%10000000          ; Check busy flag
+        BNE LCD_POLL
+
+        LDA #RW                 ; Clear E bit
+        STA PORTA
+        LDA #%11111111          ; ORB is output
+        STA DDRB
+        PLA
+        RTS
+
 LCD_INSTRUCTION:
+        JSR LCD_WAIT
         STA PORTB
         LDA #0                  ; Clear RS/RW/E bits
         JSR LCD_SEND
         RTS
 
 PRINT_CHARACTER:
+        JSR LCD_WAIT
         STA PORTB
         LDA #RS                 ; Set RS; Clear RW/E bits
 LCD_SEND:
