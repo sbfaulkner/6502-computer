@@ -1,0 +1,181 @@
+;*******************************************************************************
+; Addresses AND constants
+
+PORTB   = $6000
+PORTA   = $6001
+DDRB    = $6002
+DDRA    = $6003
+
+VALUE   = $0200 ; 2 bytes
+MOD10   = $0202 ; 2 bytes
+MESSAGE = $0204 ; 6 bytes
+COUNTER = $020A ; 2 bytes
+
+E  = %10000000
+RW = %01000000
+RS = %00100000
+
+;*******************************************************************************
+; ROM start
+
+        .ORG $8000
+
+START:
+        LDX #$FF                ; Initialize stack pointer
+        TXS
+        CLI                     ; Enable interrupts
+
+        LDA #%11111111          ; Set all eight pins of ORB to output
+        STA DDRB
+
+        LDA #%11100000          ; Set top three pins of ORA to output
+        STA DDRA
+
+        LDA #%00111000          ; Set 8-bit mode; 2-line display; 5x8 font
+        JSR LCD_INSTRUCTION
+        LDA #%00001110          ; Display on; cursor on; blink off
+        JSR LCD_INSTRUCTION
+        LDA #%00000110          ; Advancing cursor; no shifting
+        JSR LCD_INSTRUCTION
+        LDA #%00000001          ; Clear display
+        JSR LCD_INSTRUCTION
+
+        LDA #0
+        STA COUNTER
+        STA COUNTER + 1
+
+LOOP:
+        LDA #%00000010          ; Cursor home
+        JSR LCD_INSTRUCTION
+
+        LDA #0
+        STA MESSAGE
+
+        LDA COUNTER              ; Initialize VALUE to the number to convert
+        STA VALUE
+        LDA COUNTER + 1
+        STA VALUE + 1
+
+DIVIDE:
+        LDA #0                  ; Initialize the remainder to zero
+        STA MOD10
+        STA MOD10 + 1
+        CLC
+
+        LDX #16
+DIVIDE_LOOP:
+        ROL VALUE               ; Rotate quotient and remainder
+        ROL VALUE + 1
+        ROL MOD10
+        ROL MOD10 + 1
+
+        SEC                     ; A,Y = dividend - divisor
+        LDA MOD10
+        SBC #10
+        TAY                     ; Save low byte in Y
+        LDA MOD10 + 1
+        SBC #0
+        BCC NEXT_DIVIDE         ; Branch if dividend < divisor
+
+        STY MOD10
+        STA MOD10 + 1
+NEXT_DIVIDE:
+        DEX
+        BNE DIVIDE_LOOP
+        ROL VALUE               ; Shift in the last bit of the quotient
+        ROL VALUE + 1
+
+        LDA MOD10
+        CLC
+        ADC #"0"
+        JSR PUSH_CHARACTER
+
+        LDA VALUE               ; If value != 0; then continue dividing
+        ORA VALUE + 1
+        BNE DIVIDE
+
+        LDX #0
+PRINT_MESSAGE:
+        LDA MESSAGE,X
+        BEQ LOOP
+        JSR PRINT_CHARACTER
+        INX
+        JMP PRINT_MESSAGE
+
+PUSH_CHARACTER:                 ; Add character in A to beginning of NUL-terminated MESSAGE
+        PHA                     ; Push new first character onto stack
+        LDY #0
+
+CHARACTER_LOOP:
+        LDA MESSAGE,Y           ; Get next character of string and put into X
+        TAX
+        PLA
+        STA MESSAGE,Y           ; Replace with character from stack
+        INY
+        TXA
+        PHA                     ; Push character from string onto stack
+        BNE CHARACTER_LOOP
+
+        PLA
+        STA MESSAGE,Y           ; NUL-terminate MESSAGE
+
+LCD_WAIT:
+        PHA
+        LDA #%00000000          ; ORB is input
+        STA DDRB
+LCD_POLL:
+        LDA #RW                 ; Set RW; Clear RS/E bits
+        STA PORTA
+        ORA #E                  ; Set E bit to send instruction
+        STA PORTA
+        LDA PORTB
+        AND #%10000000          ; Check busy flag
+        BNE LCD_POLL
+
+        LDA #RW                 ; Clear E bit
+        STA PORTA
+        LDA #%11111111          ; ORB is output
+        STA DDRB
+        PLA
+        RTS
+
+LCD_INSTRUCTION:
+        JSR LCD_WAIT
+        STA PORTB
+        LDA #0                  ; Clear RS/RW/E bits
+        JSR LCD_SEND
+        RTS
+
+PRINT_CHARACTER:
+        JSR LCD_WAIT
+        STA PORTB
+        LDA #RS                 ; Set RS; Clear RW/E bits
+LCD_SEND:
+        STA PORTA
+        ORA #E                  ; Set E bit to send instruction
+        STA PORTA
+        EOR #E                  ; Clear E bit
+        STA PORTA
+        RTS
+
+NMI:
+        INC COUNTER
+        BNE EXIT_NMI
+        INC COUNTER + 1
+EXIT_NMI:
+        RTI
+
+IRQ:
+        INC COUNTER
+        BNE EXIT_IRQ
+        INC COUNTER + 1
+EXIT_IRQ:
+        RTI
+
+;*******************************************************************************
+; Hardware vectors
+
+        .ORG $FFFA
+        .WORD NMI               ; NMI vector
+        .WORD START             ; RESET vector
+        .WORD IRQ               ; IRQ/BRK vector
