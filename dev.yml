@@ -12,6 +12,6 @@ up:
         make CPU=6502 SYNTAX=oldstyle
 
 commands:
-  build: vasm/vasm6502_oldstyle -Fbin -dotdir -o rom.bin rom.65s
+  build: vasm/vasm6502_oldstyle -Fbin -dotdir -wdc02 -o rom.bin rom.65s
   run-built: minipro -p AT28C256 -w rom.bin
   read: minipro -p AT28C256 -r rom.bin
