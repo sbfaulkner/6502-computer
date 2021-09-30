@@ -220,11 +220,26 @@ LCD_SEND:
 
 NMI:
 IRQ:
+        PHX
+        PHY
+
         INC COUNTER
         BNE EXIT_IRQ
         INC COUNTER + 1
 EXIT_IRQ:
+
+        LDY #$FF                        ; Hacky software debouncing
+        LDX #$FF
+DELAY:                                  ; Less than ideal to delay in interrupt handler
+        DEX
+        BNE DELAY
+        DEY
+        BNE DELAY
+
         BIT PORTA                       ; Read ORA to clear CA1 interrupt
+
+        PLY
+        PLX
         RTI
 
 ;***************************************************************************************************
