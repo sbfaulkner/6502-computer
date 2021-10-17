@@ -25,6 +25,8 @@ The 62256 provides supports 32KB of addressable memory, but to keep address mapp
 
 The 16-byte range of addresses from $6000 to $600F, within the unmapped 16KB address space from $4000 to $7FFF, is used to control the W65C22 for I/O (eg. for the LCD).
 
+Note: The entire address space from $6000 to $7FFF is mapped to the VIA to simplify address decoding (ignoring all bits masked by $1FF0 -- eg. $7FFF ^ $1FF0 = $600F) 
+
 ### Reset Vector
 
 Execution begins at the address pointed to by the reset vector (WORD) at $FFFC.
