@@ -11,9 +11,7 @@ This repo contains the supporting code to build a 6502-based computer as describ
 | 4000-7FFF | Unmapped memory (except as noted) |
 | 6000-600F | VIA (Versatile Interface Adapter) |
 | 6000      | ORB/IRB (Output/Input Register "B") |
-|           | LCD bi-directional data pins |
-|           | * DB4 to DB7: high-order (DB7=busy) |
-|           | * DB0 to DB3: low-order (unused in 4-bit mode) |
+|           | LCD bi-directional data pins (DB4 to DB7) |
 | 6001      | ORA/IRA (Output/Input Register "A") |
 |           | LCD control on top 3 pins |
 |           | E  = %10000000 - Starts data read/write |
