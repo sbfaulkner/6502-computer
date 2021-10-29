@@ -5,20 +5,18 @@ This repo contains the supporting code to build a 6502-based computer as describ
 ## Memory Map
 
 | Address   | Description |
-| :-----------: |-----------|
+| :-------: |-----------|
 | 0000-3FFF | 16K RAM |
 | 0100-01FF | Processor stack |
 | 4000-7FFF | Unmapped memory (except as noted) |
 | 6000-600F | VIA (Versatile Interface Adapter) |
 | 6000      | ORB/IRB (Output/Input Register "B") |
-|           | LCD bi-directional data pins |
-|           | * DB4 to DB7: high-order (DB7=busy) |
-|           | * DB0 to DB3: low-order (unused in 4-bit mode) |
+|           | LCD bi-directional data pins (DB4 to DB7) |
 | 6001      | ORA/IRA (Output/Input Register "A") |
 |           | LCD control on top 3 pins |
 |           | E  = %10000000 - Starts data read/write |
 |           | RW = %01000000 - Selects read or write (0: Write; 1: Read) |
-|           | RA = %00100000 - Register select (0: IR; 1: DR) |
+|           | RS = %00100000 - Register select (0: IR; 1: DR) |
 | 6002      | DDRB (Data Direction Register "B") |
 | 6003      | DDRA (Data Direction Register "A") |
 | 6004      | T1C-L (T1 Low-Order Latches/Counter) |

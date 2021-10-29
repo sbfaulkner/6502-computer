@@ -218,7 +218,16 @@ LCD_POLL:
         STA PORTA
         ORA #LCD_E                      ; Set E bit to send instruction
         STA PORTA
-        LDA PORTB
+        LDA PORTB                       ; Read high nibble
+        PHA                             ; and put on stack since it has the busy flag
+
+        LDA #LCD_RW                     ; Set RW; Clear RS/E bits
+        STA PORTA
+        ORA #LCD_E                      ; Set E bit to send instruction
+        STA PORTA
+        LDA PORTB                       ; Read low nibble
+        PLA                             ; Get high nibble off the stack
+
         AND #%10000000                  ; Check busy flag
         BNE LCD_POLL
 
@@ -231,13 +240,24 @@ LCD_POLL:
 
 LCD_INSTRUCTION:
         JSR LCD_WAIT
+        PHA
+        JSR LCD_SENDINSTRUCTION         ; Send high nibble
+        PLA
+        ASL
+        ASL
+        ASL
+        ASL                             ; Send low nibble
+LCD_SENDINSTRUCTION:
         STA PORTB
         LDA #0                          ; Clear RS/RW/E bits
         JSR LCD_SEND
         RTS
 
 LCD_INIT:
-        LDA #%00111000                  ; Set 8-bit mode; 2-line display; 5x8 font
+        LDA #%00101000                  ; Set 4-bit mode; 2-line display; 5x8 font
+        JSR LCD_WAIT
+        JSR LCD_SENDINSTRUCTION
+        LDA #%00101000                  ; Set 4-bit mode; 2-line display; 5x8 font
         JSR LCD_INSTRUCTION
         LDA #%00001110                  ; Display on; cursor on; blink off
         JSR LCD_INSTRUCTION
@@ -249,8 +269,16 @@ LCD_INIT:
 
 PRINT_CHARACTER:
         JSR LCD_WAIT
+        PHA
+        JSR LCD_SENDDATA                ; Send high nibble
+        PLA
+        ASL
+        ASL
+        ASL
+        ASL                             ; Send low nibble
+LCD_SENDDATA:
         STA PORTB
-        LDA #LCD_RS                     ; Set RS; Clear RW/E bits
+        LDA #LCD_RS
 LCD_SEND:
         STA PORTA
         ORA #LCD_E                      ; Set E bit to send instruction
