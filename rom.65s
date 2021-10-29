@@ -86,9 +86,9 @@ MOD10   = $0202 ; 2 bytes
 MESSAGE = $0204 ; 6 bytes
 COUNTER = $020A ; 2 bytes
 
-LCD_E  = %10000000
-LCD_RW = %01000000
-LCD_RS = %00100000
+LCD_E  = %00001000
+LCD_RW = %00000100
+LCD_RS = %00000010
 
 ;***************************************************************************************************
 ; ROM start
@@ -125,8 +125,8 @@ START:
         LDA #%11111111                  ; Set all eight pins of PORTB to output
         STA DDRB
 
-        LDA #%11100000                  ; Set top three pins of PORTA to output
-        STA DDRA
+        ; LDA #%00000000                ; Set all eight pins of PORTA to input
+        ; STA DDRA
 
         JSR LCD_INIT
 
@@ -211,20 +211,20 @@ CHARACTER_LOOP:
 
 LCD_WAIT:
         PHA
-        LDA #%00000000                  ; ORB is input
+        LDA #%00001111                  ; Set data pins of PORTB to input
         STA DDRB
 LCD_POLL:
         LDA #LCD_RW                     ; Set RW; Clear RS/E bits
-        STA PORTA
+        STA PORTB
         ORA #LCD_E                      ; Set E bit to send instruction
-        STA PORTA
+        STA PORTB
         LDA PORTB                       ; Read high nibble
         PHA                             ; and put on stack since it has the busy flag
 
         LDA #LCD_RW                     ; Set RW; Clear RS/E bits
-        STA PORTA
+        STA PORTB
         ORA #LCD_E                      ; Set E bit to send instruction
-        STA PORTA
+        STA PORTB
         LDA PORTB                       ; Read low nibble
         PLA                             ; Get high nibble off the stack
 
@@ -232,8 +232,8 @@ LCD_POLL:
         BNE LCD_POLL
 
         LDA #LCD_RW                     ; Clear E bit
-        STA PORTA
-        LDA #%11111111                  ; ORB is output
+        STA PORTB
+        LDA #%11111111                  ; Set all eight pins of PORTB back to output
         STA DDRB
         PLA
         RTS
@@ -241,6 +241,7 @@ LCD_POLL:
 LCD_INSTRUCTION:
         JSR LCD_WAIT
         PHA
+        AND #%11110000
         JSR LCD_SENDINSTRUCTION         ; Send high nibble
         PLA
         ASL
@@ -249,17 +250,16 @@ LCD_INSTRUCTION:
         ASL                             ; Send low nibble
 LCD_SENDINSTRUCTION:
         STA PORTB
-        LDA #0                          ; Clear RS/RW/E bits
         JSR LCD_SEND
         RTS
 
 LCD_INIT:
-        LDA #%00101000                  ; Set 4-bit mode; 2-line display; 5x8 font
+        LDA #%00100000                  ; Set 4-bit mode; 1-line display; 5x8 font
         JSR LCD_WAIT
         JSR LCD_SENDINSTRUCTION
         LDA #%00101000                  ; Set 4-bit mode; 2-line display; 5x8 font
         JSR LCD_INSTRUCTION
-        LDA #%00001110                  ; Display on; cursor on; blink off
+        LDA #%00001100                  ; Display on; cursor off; blink off
         JSR LCD_INSTRUCTION
         LDA #%00000110                  ; Advancing cursor; no shifting
         JSR LCD_INSTRUCTION
@@ -270,6 +270,7 @@ LCD_INIT:
 PRINT_CHARACTER:
         JSR LCD_WAIT
         PHA
+        AND #%11110000
         JSR LCD_SENDDATA                ; Send high nibble
         PLA
         ASL
@@ -277,14 +278,13 @@ PRINT_CHARACTER:
         ASL
         ASL                             ; Send low nibble
 LCD_SENDDATA:
+        ORA #LCD_RS
         STA PORTB
-        LDA #LCD_RS
 LCD_SEND:
-        STA PORTA
         ORA #LCD_E                      ; Set E bit to send instruction
-        STA PORTA
+        STA PORTB
         EOR #LCD_E                      ; Clear E bit
-        STA PORTA
+        STA PORTB
         RTS
 
 NMI:

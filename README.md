@@ -11,12 +11,15 @@ This repo contains the supporting code to build a 6502-based computer as describ
 | 4000-7FFF | Unmapped memory (except as noted) |
 | 6000-600F | VIA (Versatile Interface Adapter) |
 | 6000      | ORB/IRB (Output/Input Register "B") |
-|           | LCD bi-directional data pins (DB4 to DB7) |
+|           | %10000000 = LCD DB7: bi-directional data pin |
+|           | %01000000 = LCD DB6: bi-directional data pin |
+|           | %00100000 = LCD DB5: bi-directional data pin |
+|           | %00010000 = LCD DB4: bi-directional data pin |
+|           | %00001000 = LCD E  : Starts data read/write |
+|           | %00000100 = LCD RW : Selects read or write (0: Write; 1: Read) |
+|           | %00000010 = LCD RS : Register select (0: IR; 1: DR) |
+|           | %00000001 = NC : ie. Unused |
 | 6001      | ORA/IRA (Output/Input Register "A") |
-|           | LCD control on top 3 pins |
-|           | E  = %10000000 - Starts data read/write |
-|           | RW = %01000000 - Selects read or write (0: Write; 1: Read) |
-|           | RS = %00100000 - Register select (0: IR; 1: DR) |
 | 6002      | DDRB (Data Direction Register "B") |
 | 6003      | DDRA (Data Direction Register "A") |
 | 6004      | T1C-L (T1 Low-Order Latches/Counter) |
@@ -43,6 +46,10 @@ The 62256 provides supports 32KB of addressable memory, but to keep address mapp
 The 16-byte range of addresses from $6000 to $600F, within the unmapped 16KB address space from $4000 to $7FFF, is used to control the W65C22 for I/O (eg. for the LCD).
 
 Note: The entire address space from $6000 to $7FFF is mapped to the VIA to simplify address decoding (ignoring all bits masked by $1FF0 -- eg. $7FFF ^ $1FF0 = $600F)
+
+#### LCD Module
+
+PORTB of the W65C22 VIA is used to control a LCD module based on the HD44780U (LCD-II) Dot Matrix Liquid Crystal Display Controller/Driver operating in 4-bit mode (ie. DB0 to DB3 unused).
 
 ### Reset Vector
 
